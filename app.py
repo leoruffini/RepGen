@@ -77,6 +77,14 @@ if 'audio_filename' not in st.session_state:
     st.session_state.audio_filename = None
 if 'test_mode' not in st.session_state:
     st.session_state.test_mode = False
+if 'customer_name' not in st.session_state:
+    st.session_state.customer_name = ""
+if 'report_date' not in st.session_state:
+    st.session_state.report_date = datetime.today().date()
+if 'sales_person' not in st.session_state:
+    st.session_state.sales_person = "Mario Casanova"
+if 'last_visit_metadata' not in st.session_state:
+    st.session_state.last_visit_metadata = None
 
 # Define test mode checkbox early (before it's used)
 # This ensures the value is updated before we check it in the main content
@@ -109,6 +117,23 @@ with col1:
             help="Upload the audio recording of the sales visit (MP3 format)"
         )
     
+    st.markdown("---")
+    st.subheader("Optional Visit Details")
+    st.text_input(
+        "Customer name (optional)",
+        key="customer_name",
+        help="Leave blank if unknown."
+    )
+    st.date_input(
+        "Date",
+        key="report_date",
+        help="Defaults to today."
+    )
+    st.text_input(
+        "Salesperson",
+        key="sales_person",
+        help="Defaults to Mario Casanova."
+    )
     if uploaded_file is not None:
         file_size_kb = uploaded_file.size / 1024
         file_size_mb = file_size_kb / 1024 if file_size_kb > 1024 else file_size_kb
@@ -240,11 +265,32 @@ if uploaded_file is not None:
                 st.info(f"💾 Transcription saved: {save_path}")
             
             # Step 3: Generate report (both modes)
+            visit_metadata = {
+                "customer_name": st.session_state.customer_name.strip(),
+                "report_date": st.session_state.report_date,
+                "sales_person": st.session_state.sales_person.strip()
+            }
+            st.session_state.last_visit_metadata = visit_metadata
+
+            metadata_lines = []
+            if visit_metadata["customer_name"]:
+                metadata_lines.append(f"- Cliente: {visit_metadata['customer_name']}")
+            if visit_metadata["report_date"]:
+                metadata_lines.append(f"- Fecha: {visit_metadata['report_date'].strftime('%Y-%m-%d')}")
+            if visit_metadata["sales_person"]:
+                metadata_lines.append(f"- Comercial: {visit_metadata['sales_person']}")
+
+            metadata_section = ""
+            if metadata_lines:
+                metadata_section = "DETALLES DE LA VISITA:\n" + "\n".join(metadata_lines) + "\n\n"
+
+            conversation_for_report = metadata_section + transcription_data['formatted_conversation']
+
             status_text.text("🤖 Generating sales visit report with GPT-5...")
             progress_bar.progress(70)
             
             with st.spinner("Analyzing conversation and generating report..."):
-                report = generate_report(transcription_data['formatted_conversation'])
+                report = generate_report(conversation_for_report)
                 st.session_state.report = report
                 progress_bar.progress(100)
             
@@ -275,6 +321,20 @@ if st.session_state.report:
     tab1, tab2 = st.tabs(["📄 Report", "🎙️ Transcription"])
     
     with tab1:
+        # Display visit metadata
+        visit_metadata = st.session_state.get('last_visit_metadata')
+        if visit_metadata:
+            customer_display = visit_metadata.get("customer_name") or "N/A"
+            date_value = visit_metadata.get("report_date")
+            date_display = date_value.strftime("%Y-%m-%d") if date_value else "N/A"
+            salesperson_display = visit_metadata.get("sales_person") or "N/A"
+            st.markdown("**Visit Details**")
+            st.markdown(
+                f"- **Customer:** {customer_display}\n"
+                f"- **Date:** {date_display}\n"
+                f"- **Salesperson:** {salesperson_display}"
+            )
+
         # Display the report
         st.markdown(st.session_state.report)
         
