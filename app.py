@@ -28,37 +28,155 @@ st.set_page_config(
 # Custom CSS for better styling
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem;
+    .top-bar {
+        background: linear-gradient(90deg, #1f77b4, #1b8fcb);
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
+    .top-bar .product-name {
+        font-size: 1.1rem;
         font-weight: 600;
+    }
+    .top-bar .product-version {
+        font-size: 0.9rem;
+        opacity: 0.85;
+    }
+    .hero {
+        background: #f7f9fc;
+        border: 1px solid #e8eef5;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .hero h1 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        color: #1f314f;
+    }
+    .hero p {
+        color: #51627a;
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+    .toggle-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #eef5fb;
         color: #1f77b4;
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .summary-card {
+        border: 1px solid #dbe5f0;
+        background: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-top: 0.75rem;
+        box-shadow: 0 4px 12px rgba(31, 79, 120, 0.05);
+    }
+    .summary-card h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: #1f314f;
+    }
+    .summary-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .summary-list li {
+        margin-bottom: 0.35rem;
+        font-size: 0.9rem;
+        color: #51627a;
+    }
+    .progress-steps {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .progress-step {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 0.9rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        border: 1px solid #dbe5f0;
+        color: #51627a;
+        background: #fff;
+    }
+    .progress-step.active {
+        border-color: #1f77b4;
+        color: #1f77b4;
+        background: rgba(31, 119, 180, 0.1);
+        font-weight: 600;
+    }
+    .progress-step.done {
+        border-color: #3cc77a;
+        color: #1e8a52;
+        background: rgba(60, 199, 122, 0.1);
+    }
+    .transcript-message {
+        border: 1px solid #e8eef5;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        background: #fbfdff;
         margin-bottom: 0.5rem;
     }
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-        margin-bottom: 2rem;
+    .transcript-speaker {
+        display: block;
+        font-weight: 600;
+        color: #1f77b4;
+        margin-bottom: 0.25rem;
     }
-    .success-box {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        margin: 1rem 0;
+    .empty-state {
+        text-align: center;
+        padding: 1.75rem;
+        border: 1px dashed #cbd8e6;
+        border-radius: 0.75rem;
+        color: #51627a;
+        background: rgba(240, 245, 250, 0.6);
     }
-    .info-box {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        background-color: #d1ecf1;
-        border: 1px solid #bee5eb;
-        margin: 1rem 0;
+    @media (max-width: 900px) {
+        .top-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.35rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown('<p class="main-header">📊 Sales Visit Report Generator</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Upload an MP3 audio file to generate a structured sales visit report with AI-powered transcription and analysis.</p>', unsafe_allow_html=True)
+st.markdown(
+    """
+    <div class="top-bar">
+        <span class="product-name">📊 Sales Visit Report Generator</span>
+        <span class="product-version">Version 1.0 · AI-powered transcription & reporting</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="hero">
+        <h1>Transform sales visits into structured reports in minutes.</h1>
+        <p>Upload your recording, verify the transcript, and download a polished summary ready to share.</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Check API keys
 api_keys = validate_api_keys()
@@ -85,85 +203,174 @@ if 'sales_person' not in st.session_state:
     st.session_state.sales_person = "Mario Casanova"
 if 'last_visit_metadata' not in st.session_state:
     st.session_state.last_visit_metadata = None
+if 'last_upload_info' not in st.session_state:
+    st.session_state.last_upload_info = None
 
-# Define test mode checkbox early (before it's used)
-# This ensures the value is updated before we check it in the main content
-with st.sidebar:
-    st.header("⚙️ Mode")
-    st.session_state.test_mode = st.checkbox(
-        "Test Mode",
-        value=st.session_state.test_mode,
-        key="test_mode_checkbox",
-        help="Upload a JSON transcription file directly (bypasses AssemblyAI)"
+def render_progress(has_upload: bool, has_transcription: bool, has_report: bool) -> None:
+    steps = [
+        {
+            "label": "Upload",
+            "status": "done" if has_upload else "active",
+        },
+        {
+            "label": "Transcription",
+            "status": (
+                "done" if has_transcription else ("active" if has_upload else "pending")
+            ),
+        },
+        {
+            "label": "AI report",
+            "status": (
+                "done" if has_report else ("active" if has_transcription else "pending")
+            ),
+        },
+        {
+            "label": "Download",
+            "status": "done" if has_report else "pending",
+        },
+    ]
+    step_html = "".join(
+        f"<div class='progress-step {' '.join(s for s in [step['status']] if s != 'pending')}'>{step['label']}</div>"
+        for step in steps
     )
-    st.markdown("---")
+    progress_placeholder.markdown(f"<div class='progress-steps'>{step_html}</div>", unsafe_allow_html=True)
 
-# Main content
-col1, col2 = st.columns([2, 1])
+progress_placeholder = st.empty()
+render_progress(
+    has_upload=bool(st.session_state.audio_filename),
+    has_transcription=st.session_state.transcription is not None,
+    has_report=st.session_state.report is not None
+)
 
-with col1:
-    if st.session_state.test_mode:
-        st.subheader("Upload Transcription JSON")
-        uploaded_file = st.file_uploader(
-            "Choose a JSON file",
-            type=["json"],
-            help="Upload a saved transcription JSON file (from transcriptions/ folder)"
+# Mode selection and guidance
+with st.container():
+    toggle_col, info_col = st.columns([1, 3])
+    with toggle_col:
+        test_mode_toggle = st.checkbox(
+            "Test mode",
+            value=st.session_state.test_mode,
+            key="test_mode_toggle",
+            help="Upload a JSON transcription file instead of a new audio recording."
         )
-    else:
-        st.subheader("Upload Audio File")
-        uploaded_file = st.file_uploader(
-            "Choose an MP3 file",
-            type=["mp3"],
-            help="Upload the audio recording of the sales visit (MP3 format)"
+        st.session_state.test_mode = test_mode_toggle
+    with info_col:
+        chip_text = (
+            "Test mode active · Upload a saved transcription JSON to generate a report instantly."
+            if st.session_state.test_mode
+            else "Standard mode · Upload an MP3 audio file, we handle transcription and reporting."
         )
-    
-    st.markdown("---")
-    st.subheader("Optional Visit Details")
-    st.text_input(
-        "Customer name (optional)",
-        key="customer_name",
-        help="Leave blank if unknown."
-    )
-    st.date_input(
-        "Date",
-        key="report_date",
-        help="Defaults to today."
-    )
-    st.text_input(
-        "Salesperson",
-        key="sales_person",
-        help="Defaults to Mario Casanova."
-    )
-    if uploaded_file is not None:
-        file_size_kb = uploaded_file.size / 1024
-        file_size_mb = file_size_kb / 1024 if file_size_kb > 1024 else file_size_kb
-        size_str = f"{file_size_mb:.2f} MB" if file_size_kb > 1024 else f"{file_size_kb:.1f} KB"
-        st.success(f"✓ File uploaded: {uploaded_file.name} ({size_str})")
-        
-        # Store filename in session state
-        st.session_state.audio_filename = uploaded_file.name
+        st.markdown(f"<span class='toggle-chip'>{chip_text}</span>", unsafe_allow_html=True)
 
-with col2:
-    st.subheader("Process Steps")
-    if st.session_state.test_mode:
-        st.markdown("""
-        1. 📄 Upload JSON transcription
-        2. 🤖 Generate AI report
-        3. 📄 Download results
-        """)
+# Upload and visit details form
+uploaded_file = None
+with st.container():
+    form_col, info_col = st.columns([2, 1])
+    with form_col:
+        with st.form("upload_form"):
+            if st.session_state.test_mode:
+                st.subheader("Upload transcription JSON")
+                uploaded_file = st.file_uploader(
+                    "Choose a JSON file",
+                    type=["json"],
+                    help="Use a transcription exported from a previous run."
+                )
+            else:
+                st.subheader("Upload audio recording")
+                uploaded_file = st.file_uploader(
+                    "Choose an MP3 file",
+                    type=["mp3"],
+                    help="High-quality MP3 recordings deliver the best transcription results."
+                )
+
+            st.markdown("**Optional visit details**")
+            details_col1, details_col2 = st.columns(2)
+            with details_col1:
+                st.text_input(
+                    "Customer name",
+                    key="customer_name",
+                    help="Leave blank if unknown."
+                )
+            with details_col2:
+                st.date_input(
+                    "Date",
+                    key="report_date",
+                    help="Defaults to today."
+                )
+
+            st.text_input(
+                "Salesperson",
+                key="sales_person",
+                help="Defaults to Mario Casanova."
+            )
+
+            st.caption("Your files stay on this device until you launch transcription.")
+
+            generate_clicked = st.form_submit_button(
+                "🚀 Generate report",
+                use_container_width=True
+            )
+
+    with info_col:
+        file_info = None
+        if uploaded_file is not None:
+            file_size_kb = uploaded_file.size / 1024
+            file_size_mb = file_size_kb / 1024 if file_size_kb > 1024 else file_size_kb
+            size_str = f"{file_size_mb:.2f} MB" if file_size_kb > 1024 else f"{file_size_kb:.1f} KB"
+            file_info = {
+                "name": uploaded_file.name,
+                "size": size_str,
+                "mode": "JSON transcription" if st.session_state.test_mode else "MP3 audio"
+            }
+            st.session_state.audio_filename = uploaded_file.name
+            st.session_state.last_upload_info = file_info
+        elif st.session_state.last_upload_info:
+            file_info = st.session_state.last_upload_info
+
+        if file_info:
+            st.markdown(
+                f"""
+                <div class="summary-card">
+                    <h4>Ready to process</h4>
+                    <ul class="summary-list">
+                        <li><strong>File:</strong> {file_info['name']}</li>
+                        <li><strong>Size:</strong> {file_info['size']}</li>
+                        <li><strong>Mode:</strong> {file_info['mode']}</li>
+                    </ul>
+                    <p style="font-size:0.85rem;margin-top:0.5rem;color:#6c7d94;">We’ll process this file when you click “Generate report”.</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                """
+                <div class="empty-state">
+                    <div style="font-size:2rem;">🎧</div>
+                    <p><strong>Drop your recording to get started.</strong></p>
+                    <p style="font-size:0.9rem;margin-bottom:0;">Upload an MP3 sales visit or switch to test mode to rehearse with a saved transcript.</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        st.markdown(
+            """
+            <div class="summary-card">
+                <h4>Quick tips</h4>
+                <ul class="summary-list">
+                    <li>Capture visits with minimal background noise.</li>
+                    <li>Confirm speaker names before sharing the report.</li>
+                    <li>Use test mode to refine prompts without re-recording.</li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+# Trigger report generation when the form is submitted
+if generate_clicked:
+    if uploaded_file is None:
+        st.warning("Please upload a file before generating a report.")
     else:
-        st.markdown("""
-        1. 🎤 Upload MP3 audio
-        2. 📝 Transcribe with speaker labels
-        3. 🤖 Generate AI report
-        4. 📄 Download results
-        """)
-
-# Generate Report Button
-st.markdown("---")
-
-if uploaded_file is not None:
-    if st.button("🚀 Generate Report", type="primary", use_container_width=True):
         try:
             # Progress tracking
             progress_bar = st.progress(0)
@@ -312,86 +519,131 @@ if uploaded_file is not None:
             if 'tmp_file_path' in locals() and os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
 
+# Update progress indicator
+render_progress(
+    has_upload=bool(st.session_state.audio_filename),
+    has_transcription=st.session_state.transcription is not None,
+    has_report=st.session_state.report is not None
+)
+
 # Display Results
 if st.session_state.report:
     st.markdown("---")
-    st.subheader("📊 Generated Report")
-    
+    st.subheader("📊 Results")
+
+    visit_metadata = st.session_state.get('last_visit_metadata')
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_filename = f"sales_visit_report_{timestamp}.md"
+    transcription_filename = f"transcription_{timestamp}.txt"
+
     # Create tabs for different views
-    tab1, tab2 = st.tabs(["📄 Report", "🎙️ Transcription"])
-    
+    tab1, tab2 = st.tabs(["📄 Report", "🎙️ Transcript"])
+
     with tab1:
-        # Display visit metadata
-        visit_metadata = st.session_state.get('last_visit_metadata')
         if visit_metadata:
             customer_display = visit_metadata.get("customer_name") or "N/A"
             date_value = visit_metadata.get("report_date")
             date_display = date_value.strftime("%Y-%m-%d") if date_value else "N/A"
             salesperson_display = visit_metadata.get("sales_person") or "N/A"
-            st.markdown("**Visit Details**")
             st.markdown(
-                f"- **Customer:** {customer_display}\n"
-                f"- **Date:** {date_display}\n"
-                f"- **Salesperson:** {salesperson_display}"
+                f"""
+                <div class="summary-card">
+                    <h4>Visit details</h4>
+                    <ul class="summary-list">
+                        <li><strong>Customer:</strong> {customer_display}</li>
+                        <li><strong>Date:</strong> {date_display}</li>
+                        <li><strong>Salesperson:</strong> {salesperson_display}</li>
+                    </ul>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
-        # Display the report
         st.markdown(st.session_state.report)
-        
-        # Download button for report
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_filename = f"sales_visit_report_{timestamp}.md"
-        
-        st.download_button(
-            label="⬇️ Download Report (Markdown)",
-            data=st.session_state.report,
-            file_name=report_filename,
-            mime="text/markdown",
-            use_container_width=True
-        )
-    
-    with tab2:
-        # Display transcription
-        if st.session_state.transcription:
-            st.subheader("Full Conversation Transcript")
-            
-            # Show metadata
-            metadata = st.session_state.transcription.get('metadata', {})
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric("Language", metadata.get('language_code', 'N/A').upper())
-            with col2:
-                st.metric("Speakers", len(set(u['speaker'] for u in st.session_state.transcription.get('utterances', []))))
-            with col3:
-                duration = metadata.get('audio_duration')
-                if duration:
-                    st.metric("Duration", f"{duration/1000:.1f}s")
-                else:
-                    st.metric("Duration", "N/A")
-            
-            st.markdown("---")
-            
-            # Display formatted conversation
-            st.markdown("**Speaker-by-Speaker Transcript:**")
-            st.text_area(
-                "Conversation",
-                value=st.session_state.transcription['formatted_conversation'],
-                height=400,
-                label_visibility="collapsed"
-            )
-            
-            # Download button for transcription
-            transcription_filename = f"transcription_{timestamp}.txt"
+
+        dl_col1, dl_col2 = st.columns(2)
+        with dl_col1:
             st.download_button(
-                label="⬇️ Download Transcription (Text)",
-                data=st.session_state.transcription['formatted_conversation'],
+                label="⬇️ Download report (Markdown)",
+                data=st.session_state.report,
+                file_name=report_filename,
+                mime="text/markdown",
+                use_container_width=True,
+                key="download_report_markdown",
+            )
+        with dl_col2:
+            st.download_button(
+                label="⬇️ Download transcript (Text)",
+                data=st.session_state.transcription['formatted_conversation']
+                if st.session_state.transcription
+                else "",
                 file_name=transcription_filename,
                 mime="text/plain",
-                use_container_width=True
+                use_container_width=True,
+                disabled=st.session_state.transcription is None,
+                key="download_transcript_text_summary",
+            )
+
+    with tab2:
+        if st.session_state.transcription:
+            transcription = st.session_state.transcription
+            metadata = transcription.get('metadata', {})
+            utterances = transcription.get('utterances', [])
+
+            with st.expander("Recording details", expanded=False):
+                detail_col1, detail_col2, detail_col3 = st.columns(3)
+                with detail_col1:
+                    language_code = metadata.get('language_code', 'N/A')
+                    st.metric("Language", language_code.upper() if language_code else "N/A")
+                with detail_col2:
+                    st.metric("Speakers", len(set(u['speaker'] for u in utterances)))
+                with detail_col3:
+                    duration = metadata.get('audio_duration')
+                    st.metric("Duration", f"{duration/1000:.1f}s" if duration else "N/A")
+
+            transcript_container = st.container()
+            for idx, utterance in enumerate(utterances):
+                speaker = utterance.get('speaker', '?')
+                text = (utterance.get('text') or "").strip()
+                if not text:
+                    continue
+                transcript_container.markdown(
+                    f"""
+                    <div class="transcript-message">
+                        <span class="transcript-speaker">Speaker {speaker}</span>
+                        <div>{text}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            st.download_button(
+                label="⬇️ Download transcript (Text)",
+                data=transcription['formatted_conversation'],
+                file_name=transcription_filename,
+                mime="text/plain",
+                use_container_width=True,
+                key="download_transcript_text_detail",
             )
         else:
             st.info("No transcription data available.")
+
+    st.markdown(
+        """
+        <div class="summary-card" style="margin-top:1.5rem;">
+            <h4>All set</h4>
+            <p style="color:#51627a;margin-bottom:0.75rem;">Need to process another visit? Reset the flow below.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("Process another file", use_container_width=True):
+        st.session_state.report = None
+        st.session_state.transcription = None
+        st.session_state.audio_filename = None
+        st.session_state.last_upload_info = None
+        st.session_state.last_visit_metadata = None
+        st.rerun()
 
 # Continue sidebar content (checkbox defined above, rest of content below)
 with st.sidebar:
