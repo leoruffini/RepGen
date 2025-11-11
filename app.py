@@ -183,7 +183,9 @@ api_keys = validate_api_keys()
 if not all(api_keys.values()):
     st.error("⚠️ Missing API Keys!")
     missing_keys = [key.upper() for key, available in api_keys.items() if not available]
-    st.error(f"Please ensure the following API keys are set in your .env file: {', '.join(missing_keys)}")
+    st.error(
+        f"Please ensure the following API keys are set via your .env file or Streamlit secrets: {', '.join(missing_keys)}"
+    )
     st.stop()
 
 # Initialize session state

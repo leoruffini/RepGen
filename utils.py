@@ -13,8 +13,56 @@ from datetime import datetime
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables from .env when present
 load_dotenv()
+
+# Optional Streamlit import (only available when running the app)
+try:
+    import streamlit as st
+    STREAMLIT_AVAILABLE = True
+except ImportError:
+    STREAMLIT_AVAILABLE = False
+    st = None  # type: ignore[assignment]
+
+
+def _get_secret_value(key: str, default: Optional[str] = None) -> Optional[str]:
+    """
+    Retrieve configuration values from environment variables or Streamlit secrets.
+
+    Args:
+        key: Name of the configuration variable.
+        default: Default value if the key is not found.
+
+    Returns:
+        The value of the configuration variable or the default.
+    """
+    value = os.getenv(key)
+    if value:
+        return value
+
+    if STREAMLIT_AVAILABLE:
+        try:
+            secrets = st.secrets  # type: ignore[assignment]
+        except (AttributeError, RuntimeError):
+            secrets = None
+
+        if secrets is not None:
+            # Support both top-level keys and section-based keys (e.g. openai.api_key)
+            if key in secrets:
+                return secrets[key]
+
+            if "." in key:
+                section, sub_key = key.split(".", 1)
+                try:
+                    section_data = secrets[section]
+                except KeyError:
+                    section_data = None
+
+                if isinstance(section_data, dict) and sub_key in section_data:
+                    return section_data[sub_key]
+
+    return default
+
 
 # Import API clients
 try:
@@ -54,9 +102,9 @@ def transcribe_audio(audio_file_path: str) -> Dict:
         raise ImportError("AssemblyAI SDK not installed. Install with: pip install assemblyai")
     
     # Get API key
-    api_key = os.getenv("ASSEMBLYAI_API_KEY")
+    api_key = _get_secret_value("ASSEMBLYAI_API_KEY")
     if not api_key:
-        raise ValueError("ASSEMBLYAI_API_KEY not found in environment variables")
+        raise ValueError("ASSEMBLYAI_API_KEY not found in environment variables or Streamlit secrets")
     
     # Configure API
     aai.settings.api_key = api_key
@@ -250,16 +298,16 @@ def generate_report(formatted_conversation: str) -> str:
         raise ImportError("OpenAI SDK not installed. Install with: pip install openai")
     
     # Get API key
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = _get_secret_value("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("OPENAI_API_KEY not found in environment variables")
     
     # Get stored prompt configuration
-    prompt_id = os.getenv("OPENAI_PROMPT_ID")
-    prompt_version = os.getenv("OPENAI_PROMPT_VERSION", "1")
+    prompt_id = _get_secret_value("OPENAI_PROMPT_ID")
+    prompt_version = _get_secret_value("OPENAI_PROMPT_VERSION", "1")
     
     if not prompt_id:
-        raise ValueError("OPENAI_PROMPT_ID not found in environment variables. Please add it to your .env file.")
+        raise ValueError("OPENAI_PROMPT_ID not found in environment variables or Streamlit secrets. Please add it to your configuration.")
     
     # Initialize OpenAI client
     client = OpenAI(api_key=api_key)
@@ -304,8 +352,8 @@ def validate_api_keys() -> Dict[str, bool]:
         Dictionary with API key and configuration availability status
     """
     return {
-        "assemblyai": bool(os.getenv("ASSEMBLYAI_API_KEY")),
-        "openai": bool(os.getenv("OPENAI_API_KEY")),
-        "openai_prompt": bool(os.getenv("OPENAI_PROMPT_ID"))
+        "assemblyai": bool(_get_secret_value("ASSEMBLYAI_API_KEY")),
+        "openai": bool(_get_secret_value("OPENAI_API_KEY")),
+        "openai_prompt": bool(_get_secret_value("OPENAI_PROMPT_ID")),
     }
 
