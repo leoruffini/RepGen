@@ -1,8 +1,8 @@
 """
-Sales Visit Report Generator - Streamlit Application
+Generador de informes de visitas comerciales - Aplicación Streamlit
 
-A web application that transcribes sales visit audio recordings with speaker
-diarization and generates structured sales visit reports using AI.
+Una aplicación web que transcribe grabaciones de visitas comerciales con diarización
+de interlocutores y genera informes estructurados utilizando IA.
 """
 
 import streamlit as st
@@ -20,7 +20,7 @@ from utils import (
 
 # Page configuration
 st.set_page_config(
-    page_title="Sales Visit Report Generator",
+    page_title="Generador de informes de visitas comerciales",
     page_icon="📊",
     layout="wide"
 )
@@ -161,8 +161,8 @@ st.markdown("""
 st.markdown(
     """
     <div class="top-bar">
-        <span class="product-name">📊 Sales Visit Report Generator</span>
-        <span class="product-version">Version 1.0 · AI-powered transcription & reporting</span>
+        <span class="product-name">📊 Generador de informes de visitas comerciales</span>
+        <span class="product-version">Versión 1.0 · Transcripción e informes con IA</span>
     </div>
     """,
     unsafe_allow_html=True,
@@ -171,8 +171,8 @@ st.markdown(
 st.markdown(
     """
     <div class="hero">
-        <h1>Transform sales visits into structured reports in minutes.</h1>
-        <p>Upload your recording, verify the transcript, and download a polished summary ready to share.</p>
+        <h1>Convierte tus visitas comerciales en informes estructurados en minutos.</h1>
+        <p>Sube tu grabación, revisa la transcripción y descarga un resumen listo para compartir.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -181,10 +181,10 @@ st.markdown(
 # Check API keys
 api_keys = validate_api_keys()
 if not all(api_keys.values()):
-    st.error("⚠️ Missing API Keys!")
+    st.error("⚠️ ¡Faltan claves de API!")
     missing_keys = [key.upper() for key, available in api_keys.items() if not available]
     st.error(
-        f"Please ensure the following API keys are set via your .env file or Streamlit secrets: {', '.join(missing_keys)}"
+        f"Asegúrate de configurar las siguientes claves de API en tu archivo .env o en los secretos de Streamlit: {', '.join(missing_keys)}"
     )
     st.stop()
 
@@ -211,23 +211,23 @@ if 'last_upload_info' not in st.session_state:
 def render_progress(has_upload: bool, has_transcription: bool, has_report: bool) -> None:
     steps = [
         {
-            "label": "Upload",
+            "label": "Subida",
             "status": "done" if has_upload else "active",
         },
         {
-            "label": "Transcription",
+            "label": "Transcripción",
             "status": (
                 "done" if has_transcription else ("active" if has_upload else "pending")
             ),
         },
         {
-            "label": "AI report",
+            "label": "Informe IA",
             "status": (
                 "done" if has_report else ("active" if has_transcription else "pending")
             ),
         },
         {
-            "label": "Download",
+            "label": "Descarga",
             "status": "done" if has_report else "pending",
         },
     ]
@@ -249,17 +249,17 @@ with st.container():
     toggle_col, info_col = st.columns([1, 3])
     with toggle_col:
         test_mode_toggle = st.checkbox(
-            "Test mode",
+            "Modo de prueba",
             value=st.session_state.test_mode,
             key="test_mode_toggle",
-            help="Upload a JSON transcription file instead of a new audio recording."
+            help="Sube un archivo JSON de transcripción en lugar de una nueva grabación de audio."
         )
         st.session_state.test_mode = test_mode_toggle
     with info_col:
         chip_text = (
-            "Test mode active · Upload a saved transcription JSON to generate a report instantly."
+            "Modo de prueba activo · Sube una transcripción JSON guardada para generar un informe al instante."
             if st.session_state.test_mode
-            else "Standard mode · Upload an MP3 audio file, we handle transcription and reporting."
+            else "Modo estándar · Sube un archivo de audio MP3; nosotros nos ocupamos de la transcripción y del informe."
         )
         st.markdown(f"<span class='toggle-chip'>{chip_text}</span>", unsafe_allow_html=True)
 
@@ -270,45 +270,45 @@ with st.container():
     with form_col:
         with st.form("upload_form"):
             if st.session_state.test_mode:
-                st.subheader("Upload transcription JSON")
+                st.subheader("Sube la transcripción en JSON")
                 uploaded_file = st.file_uploader(
-                    "Choose a JSON file",
+                    "Elige un archivo JSON",
                     type=["json"],
-                    help="Use a transcription exported from a previous run."
+                    help="Utiliza una transcripción exportada de una ejecución anterior."
                 )
             else:
-                st.subheader("Upload audio recording")
+                st.subheader("Sube la grabación de audio")
                 uploaded_file = st.file_uploader(
-                    "Choose an MP3 file",
+                    "Elige un archivo MP3",
                     type=["mp3"],
-                    help="High-quality MP3 recordings deliver the best transcription results."
+                    help="Las grabaciones MP3 de alta calidad ofrecen mejores resultados de transcripción."
                 )
 
-            st.markdown("**Optional visit details**")
+            st.markdown("**Detalles de la visita (opcional)**")
             details_col1, details_col2 = st.columns(2)
             with details_col1:
                 st.text_input(
-                    "Customer name",
+                    "Nombre del cliente",
                     key="customer_name",
-                    help="Leave blank if unknown."
+                    help="Déjalo en blanco si no lo conoces."
                 )
             with details_col2:
                 st.date_input(
-                    "Date",
+                    "Fecha",
                     key="report_date",
-                    help="Defaults to today."
+                    help="Por defecto es la fecha de hoy."
                 )
 
             st.text_input(
-                "Salesperson",
+                "Comercial",
                 key="sales_person",
-                help="Defaults to Mario Casanova."
+                help="Por defecto: Mario Casanova."
             )
 
-            st.caption("Your files stay on this device until you launch transcription.")
+            st.caption("Tus archivos permanecen en este dispositivo hasta iniciar la transcripción.")
 
             generate_clicked = st.form_submit_button(
-                "🚀 Generate report",
+                "🚀 Generar informe",
                 use_container_width=True
             )
 
@@ -321,7 +321,7 @@ with st.container():
             file_info = {
                 "name": uploaded_file.name,
                 "size": size_str,
-                "mode": "JSON transcription" if st.session_state.test_mode else "MP3 audio"
+                "mode": "Transcripción JSON" if st.session_state.test_mode else "Audio MP3"
             }
             st.session_state.audio_filename = uploaded_file.name
             st.session_state.last_upload_info = file_info
@@ -332,13 +332,13 @@ with st.container():
             st.markdown(
                 f"""
                 <div class="summary-card">
-                    <h4>Ready to process</h4>
+                    <h4>Listo para procesar</h4>
                     <ul class="summary-list">
-                        <li><strong>File:</strong> {file_info['name']}</li>
-                        <li><strong>Size:</strong> {file_info['size']}</li>
-                        <li><strong>Mode:</strong> {file_info['mode']}</li>
+                        <li><strong>Archivo:</strong> {file_info['name']}</li>
+                        <li><strong>Tamaño:</strong> {file_info['size']}</li>
+                        <li><strong>Modo:</strong> {file_info['mode']}</li>
                     </ul>
-                    <p style="font-size:0.85rem;margin-top:0.5rem;color:#6c7d94;">We’ll process this file when you click “Generate report”.</p>
+                    <p style="font-size:0.85rem;margin-top:0.5rem;color:#6c7d94;">Procesaremos este archivo cuando hagas clic en “Generar informe”.</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -348,8 +348,8 @@ with st.container():
                 """
                 <div class="empty-state">
                     <div style="font-size:2rem;">🎧</div>
-                    <p><strong>Drop your recording to get started.</strong></p>
-                    <p style="font-size:0.9rem;margin-bottom:0;">Upload an MP3 sales visit or switch to test mode to rehearse with a saved transcript.</p>
+                    <p><strong>Arrastra tu grabación para empezar.</strong></p>
+                    <p style="font-size:0.9rem;margin-bottom:0;">Sube una visita comercial en MP3 o cambia al modo de prueba para practicar con una transcripción guardada.</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -357,11 +357,11 @@ with st.container():
         st.markdown(
             """
             <div class="summary-card">
-                <h4>Quick tips</h4>
+                <h4>Consejos rápidos</h4>
                 <ul class="summary-list">
-                    <li>Capture visits with minimal background noise.</li>
-                    <li>Confirm speaker names before sharing the report.</li>
-                    <li>Use test mode to refine prompts without re-recording.</li>
+                    <li>Graba las visitas con el mínimo ruido de fondo.</li>
+                    <li>Confirma los nombres de los interlocutores antes de compartir el informe.</li>
+                    <li>Usa el modo de prueba para afinar los prompts sin volver a grabar.</li>
                 </ul>
             </div>
             """,
@@ -371,7 +371,7 @@ with st.container():
 # Trigger report generation when the form is submitted
 if generate_clicked:
     if uploaded_file is None:
-        st.warning("Please upload a file before generating a report.")
+        st.warning("Sube un archivo antes de generar el informe.")
     else:
         try:
             # Progress tracking
@@ -380,26 +380,26 @@ if generate_clicked:
             
             if st.session_state.test_mode:
                 # Test Mode: Load transcription from JSON
-                status_text.text("📄 Loading transcription from JSON...")
+                status_text.text("📄 Cargando la transcripción desde JSON...")
                 progress_bar.progress(20)
                 
                 uploaded_file.seek(0)
                 try:
                     json_data = json.load(uploaded_file)
                 except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON file: {e}")
+                    raise ValueError(f"Archivo JSON no válido: {e}")
                 
-                with st.spinner("Processing transcription data..."):
+                with st.spinner("Procesando los datos de la transcripción..."):
                     transcription_data = load_transcription_from_json(json_data)
                     st.session_state.transcription = transcription_data
                     progress_bar.progress(40)
                 
-                status_text.text("✓ Transcription loaded!")
+                status_text.text("✓ ¡Transcripción cargada!")
                 
                 # Show info
                 num_utterances = len(transcription_data.get('utterances', []))
                 num_speakers = len(set(u['speaker'] for u in transcription_data.get('utterances', [])))
-                st.info(f"ℹ️ Loaded {num_speakers} speakers with {num_utterances} utterances from JSON")
+                st.info(f"ℹ️ Se cargaron {num_speakers} interlocutores con {num_utterances} intervenciones desde el JSON")
                 
             else:
                 # Normal Mode: Transcribe audio with AssemblyAI
@@ -413,17 +413,17 @@ if generate_clicked:
                 
                 # Verify file was created and has content
                 if not os.path.exists(tmp_file_path):
-                    raise Exception("Failed to create temporary file")
+                    raise Exception("No se pudo crear el archivo temporal")
                 
                 file_size = os.path.getsize(tmp_file_path)
                 if file_size == 0:
-                    raise Exception("Uploaded file is empty")
+                    raise Exception("El archivo subido está vacío")
                 
                 # Step 1: Transcribe audio
-                status_text.text(f"🎤 Uploading and transcribing audio ({file_size / 1024 / 1024:.2f} MB)...")
+                status_text.text(f"🎤 Cargando y transcribiendo el audio ({file_size / 1024 / 1024:.2f} MB)...")
                 progress_bar.progress(10)
                 
-                with st.spinner("Transcribing audio... This may take a few minutes."):
+                with st.spinner("Transcribiendo audio... Puede tardar algunos minutos."):
                     transcription_data = transcribe_audio(tmp_file_path)
                     st.session_state.transcription = transcription_data
                     progress_bar.progress(50)
@@ -431,7 +431,7 @@ if generate_clicked:
                 # Clean up temp file
                 os.unlink(tmp_file_path)
                 
-                status_text.text("✓ Transcription complete!")
+                status_text.text("✓ ¡Transcripción completada!")
                 
                 # Show detailed info about the transcription for verification
                 metadata = transcription_data.get('metadata', {})
@@ -439,39 +439,39 @@ if generate_clicked:
                 num_speakers = len(set(u['speaker'] for u in transcription_data.get('utterances', [])))
                 
                 # Display critical information for debugging
-                st.success("✅ Transcription Complete!")
+                st.success("✅ ¡Transcripción completada!")
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    st.metric("Speakers", num_speakers)
+                    st.metric("Interlocutores", num_speakers)
                 with col2:
-                    st.metric("Utterances", num_utterances)
+                    st.metric("Intervenciones", num_utterances)
                 with col3:
                     language = metadata.get('language_code', 'unknown')
-                    st.metric("Language", language.upper() if language != 'unknown' else 'N/A')
+                    st.metric("Idioma", language.upper() if language != 'unknown' else 'N/A')
                 with col4:
                     confidence = metadata.get('language_confidence')
                     if confidence is not None:
-                        st.metric("Confidence", f"{confidence:.1%}")
+                        st.metric("Confianza", f"{confidence:.1%}")
                     else:
-                        st.metric("Confidence", "N/A")
+                        st.metric("Confianza", "N/A")
                 
                 # Show first few utterances for verification
-                st.markdown("**🔍 First 3 Utterances (for verification):**")
+                st.markdown("**🔍 Primeras 3 intervenciones (verificación):**")
                 for i, utterance in enumerate(transcription_data.get('utterances', [])[:3], 1):
                     speaker = utterance.get('speaker', '?')
                     text = utterance.get('text', '')[:150]
-                    st.caption(f"{i}. **Speaker {speaker}:** {text}{'...' if len(utterance.get('text', '')) > 150 else ''}")
+                    st.caption(f"{i}. **Interlocutor {speaker}:** {text}{'...' if len(utterance.get('text', '')) > 150 else ''}")
                 
                 # Show transcript ID for support
-                st.info(f"🔑 **Transcript ID:** `{metadata.get('transcript_id', 'N/A')}`")
+                st.info(f"🔑 **ID de transcripción:** `{metadata.get('transcript_id', 'N/A')}`")
                 
                 # Step 2: Save transcription (only in normal mode)
-                status_text.text("💾 Saving transcription data...")
+                status_text.text("💾 Guardando los datos de la transcripción...")
                 transcription_data['metadata']['original_filename'] = uploaded_file.name
                 save_path = save_transcription(transcription_data, uploaded_file.name)
                 progress_bar.progress(60)
-                st.info(f"💾 Transcription saved: {save_path}")
+                st.info(f"💾 Transcripción guardada: {save_path}")
             
             # Step 3: Generate report (both modes)
             visit_metadata = {
@@ -495,28 +495,28 @@ if generate_clicked:
 
             conversation_for_report = metadata_section + transcription_data['formatted_conversation']
 
-            status_text.text("🤖 Generating sales visit report with GPT-5...")
+            status_text.text("🤖 Generando informe de visita comercial con GPT-5...")
             progress_bar.progress(70)
             
-            with st.spinner("Analyzing conversation and generating report..."):
+            with st.spinner("Analizando la conversación y generando el informe..."):
                 report = generate_report(conversation_for_report)
                 st.session_state.report = report
                 progress_bar.progress(100)
             
-            status_text.text("✓ Report generated successfully!")
+            status_text.text("✓ ¡Informe generado correctamente!")
             
             # Clean up temporary file (only in normal mode)
             if 'tmp_file_path' in locals() and os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
             
             # Success message
-            st.success("🎉 Report generated successfully!")
+            st.success("🎉 ¡Informe generado correctamente!")
             if 'save_path' in locals():
-                st.info(f"📁 Transcription saved to: {save_path}")
+                st.info(f"📁 Transcripción guardada en: {save_path}")
             
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
-            st.error("Please check your API keys and try again.")
+            st.error("Revisa tus claves de API e inténtalo de nuevo.")
             # Clean up temp file if it exists
             if 'tmp_file_path' in locals() and os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
@@ -531,15 +531,15 @@ render_progress(
 # Display Results
 if st.session_state.report:
     st.markdown("---")
-    st.subheader("📊 Results")
+    st.subheader("📊 Resultados")
 
     visit_metadata = st.session_state.get('last_visit_metadata')
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f"sales_visit_report_{timestamp}.md"
-    transcription_filename = f"transcription_{timestamp}.txt"
+    report_filename = f"informe_visita_comercial_{timestamp}.md"
+    transcription_filename = f"transcripcion_{timestamp}.txt"
 
     # Create tabs for different views
-    tab1, tab2 = st.tabs(["📄 Report", "🎙️ Transcript"])
+    tab1, tab2 = st.tabs(["📄 Informe", "🎙️ Transcripción"])
 
     with tab1:
         if visit_metadata:
@@ -550,11 +550,11 @@ if st.session_state.report:
             st.markdown(
                 f"""
                 <div class="summary-card">
-                    <h4>Visit details</h4>
+                    <h4>Detalles de la visita</h4>
                     <ul class="summary-list">
-                        <li><strong>Customer:</strong> {customer_display}</li>
-                        <li><strong>Date:</strong> {date_display}</li>
-                        <li><strong>Salesperson:</strong> {salesperson_display}</li>
+                        <li><strong>Cliente:</strong> {customer_display}</li>
+                        <li><strong>Fecha:</strong> {date_display}</li>
+                        <li><strong>Comercial:</strong> {salesperson_display}</li>
                     </ul>
                 </div>
                 """,
@@ -566,7 +566,7 @@ if st.session_state.report:
         dl_col1, dl_col2 = st.columns(2)
         with dl_col1:
             st.download_button(
-                label="⬇️ Download report (Markdown)",
+                label="⬇️ Descargar informe (Markdown)",
                 data=st.session_state.report,
                 file_name=report_filename,
                 mime="text/markdown",
@@ -575,7 +575,7 @@ if st.session_state.report:
             )
         with dl_col2:
             st.download_button(
-                label="⬇️ Download transcript (Text)",
+                label="⬇️ Descargar transcripción (Texto)",
                 data=st.session_state.transcription['formatted_conversation']
                 if st.session_state.transcription
                 else "",
@@ -592,16 +592,16 @@ if st.session_state.report:
             metadata = transcription.get('metadata', {})
             utterances = transcription.get('utterances', [])
 
-            with st.expander("Recording details", expanded=False):
+            with st.expander("Detalles de la grabación", expanded=False):
                 detail_col1, detail_col2, detail_col3 = st.columns(3)
                 with detail_col1:
                     language_code = metadata.get('language_code', 'N/A')
-                    st.metric("Language", language_code.upper() if language_code else "N/A")
+                    st.metric("Idioma", language_code.upper() if language_code else "N/A")
                 with detail_col2:
-                    st.metric("Speakers", len(set(u['speaker'] for u in utterances)))
+                    st.metric("Interlocutores", len(set(u['speaker'] for u in utterances)))
                 with detail_col3:
                     duration = metadata.get('audio_duration')
-                    st.metric("Duration", f"{duration/1000:.1f}s" if duration else "N/A")
+                    st.metric("Duración", f"{duration/1000:.1f}s" if duration else "N/A")
 
             transcript_container = st.container()
             for idx, utterance in enumerate(utterances):
@@ -612,7 +612,7 @@ if st.session_state.report:
                 transcript_container.markdown(
                     f"""
                     <div class="transcript-message">
-                        <span class="transcript-speaker">Speaker {speaker}</span>
+                        <span class="transcript-speaker">Interlocutor {speaker}</span>
                         <div>{text}</div>
                     </div>
                     """,
@@ -620,7 +620,7 @@ if st.session_state.report:
                 )
 
             st.download_button(
-                label="⬇️ Download transcript (Text)",
+                label="⬇️ Descargar transcripción (Texto)",
                 data=transcription['formatted_conversation'],
                 file_name=transcription_filename,
                 mime="text/plain",
@@ -628,18 +628,18 @@ if st.session_state.report:
                 key="download_transcript_text_detail",
             )
         else:
-            st.info("No transcription data available.")
+            st.info("No hay datos de transcripción disponibles.")
 
     st.markdown(
         """
         <div class="summary-card" style="margin-top:1.5rem;">
-            <h4>All set</h4>
-            <p style="color:#51627a;margin-bottom:0.75rem;">Need to process another visit? Reset the flow below.</p>
+            <h4>Todo listo</h4>
+            <p style="color:#51627a;margin-bottom:0.75rem;">¿Necesitas procesar otra visita? Reinicia el flujo a continuación.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button("Process another file", use_container_width=True):
+    if st.button("Procesar otro archivo", use_container_width=True):
         st.session_state.report = None
         st.session_state.transcription = None
         st.session_state.audio_filename = None
@@ -649,38 +649,38 @@ if st.session_state.report:
 
 # Continue sidebar content (checkbox defined above, rest of content below)
 with st.sidebar:
-    st.header("ℹ️ About")
+    st.header("ℹ️ Acerca de")
     st.markdown("""
-    This application uses:
-    - **AssemblyAI** for audio transcription with speaker diarization
-    - **OpenAI GPT-5** for intelligent report generation
+    Esta aplicación utiliza:
+    - **AssemblyAI** para la transcripción de audio con diarización de interlocutores
+    - **OpenAI GPT-5** para la generación inteligente de informes
     
-    The system automatically identifies different speakers in the conversation
-    and generates a structured sales visit report following the Provalix Homes format.
+    El sistema identifica automáticamente a los distintos interlocutores
+    y genera un informe estructurado de la visita comercial siguiendo el formato de Provalix Homes.
     """)
     
     st.markdown("---")
     
-    st.header("📋 Requirements")
+    st.header("📋 Requisitos")
     if st.session_state.test_mode:
         st.markdown("""
-        - JSON transcription file
-        - Format: Saved transcription from previous runs
+        - Archivo de transcripción en JSON
+        - Formato: transcripción guardada de ejecuciones anteriores
         """)
     else:
         st.markdown("""
-        - MP3 audio file
-        - Clear audio quality
-        - 2-5 speakers expected
-        - Sales visit context
+        - Archivo de audio MP3
+        - Calidad de audio nítida
+        - Se esperan de 2 a 5 interlocutores
+        - Contexto de visita comercial
         """)
     
     st.markdown("---")
     
-    st.header("🔑 API Status")
+    st.header("🔑 Estado de las API")
     if st.session_state.test_mode:
         # In test mode, only OpenAI is needed
-        st.info("Test Mode: Only OpenAI API needed")
+        st.info("Modo de prueba: solo necesitas la API de OpenAI")
         if api_keys.get('openai'):
             st.success("✅ OPENAI")
         else:
@@ -691,9 +691,9 @@ with st.sidebar:
             st.markdown(f"{status} {api_name.upper()}")
     
     if (st.session_state.test_mode and api_keys.get('openai')) or (not st.session_state.test_mode and all(api_keys.values())):
-        st.success("All required API keys configured!")
+        st.success("¡Todas las claves de API necesarias están configuradas!")
     
     st.markdown("---")
-    st.caption("Sales Visit Report Generator v1.0")
-    st.caption("Built with Streamlit, AssemblyAI & OpenAI")
+    st.caption("Generador de informes de visitas comerciales v1.0")
+    st.caption("Creado con Streamlit, AssemblyAI y OpenAI")
 

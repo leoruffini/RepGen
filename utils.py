@@ -1,10 +1,10 @@
 """
-Utility functions for the Sales Visit Report Generator.
+Funciones auxiliares para el generador de informes de visitas comerciales.
 
-This module provides functions for:
-- Transcribing audio files with speaker diarization using AssemblyAI
-- Saving transcription data to JSON files
-- Generating sales visit reports using OpenAI GPT-5
+Este módulo proporciona funciones para:
+- Transcribir archivos de audio con diarización de interlocutores usando AssemblyAI
+- Guardar datos de transcripción en archivos JSON
+- Generar informes de visitas comerciales con OpenAI GPT-5
 """
 
 import os
@@ -70,14 +70,14 @@ try:
     ASSEMBLYAI_AVAILABLE = True
 except ImportError:
     ASSEMBLYAI_AVAILABLE = False
-    print("Warning: AssemblyAI SDK not installed")
+    print("Aviso: SDK de AssemblyAI no instalado")
 
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-    print("Warning: OpenAI SDK not installed")
+    print("Aviso: SDK de OpenAI no instalado")
 
 
 def transcribe_audio(audio_file_path: str) -> Dict:
@@ -99,12 +99,12 @@ def transcribe_audio(audio_file_path: str) -> Dict:
         Exception: If transcription fails
     """
     if not ASSEMBLYAI_AVAILABLE:
-        raise ImportError("AssemblyAI SDK not installed. Install with: pip install assemblyai")
+        raise ImportError("SDK de AssemblyAI no instalado. Instálalo con: pip install assemblyai")
     
     # Get API key
     api_key = _get_secret_value("ASSEMBLYAI_API_KEY")
     if not api_key:
-        raise ValueError("ASSEMBLYAI_API_KEY not found in environment variables or Streamlit secrets")
+        raise ValueError("ASSEMBLYAI_API_KEY no está configurado en las variables de entorno ni en los secretos de Streamlit")
     
     # Configure API
     aai.settings.api_key = api_key
@@ -126,7 +126,7 @@ def transcribe_audio(audio_file_path: str) -> Dict:
     
     # Verify the file before sending
     if not os.path.exists(audio_file_path):
-        raise FileNotFoundError(f"Audio file not found: {audio_file_path}")
+        raise FileNotFoundError(f"Archivo de audio no encontrado: {audio_file_path}")
     
     file_size = os.path.getsize(audio_file_path)
     print(f"DEBUG: Sending file to AssemblyAI: {audio_file_path}")
@@ -152,7 +152,7 @@ def transcribe_audio(audio_file_path: str) -> Dict:
     
     # Check for errors
     if transcript.status == "error":
-        raise Exception(f"Transcription failed: {transcript.error}")
+        raise Exception(f"Transcripción fallida: {transcript.error}")
     
     # Format conversation for GPT-5
     formatted_conversation = format_conversation(transcript.utterances)
@@ -199,9 +199,9 @@ def format_conversation(utterances) -> str:
     conversation_lines = []
     
     for utterance in utterances:
-        speaker = utterance.speaker if hasattr(utterance, 'speaker') else "Unknown"
+        speaker = utterance.speaker if hasattr(utterance, 'speaker') else "Desconocido"
         text = utterance.text if hasattr(utterance, 'text') else ""
-        conversation_lines.append(f"Speaker {speaker}: {text}")
+        conversation_lines.append(f"Interlocutor {speaker}: {text}")
     
     return "\n\n".join(conversation_lines)
 
@@ -226,14 +226,14 @@ def load_transcription_from_json(json_data: Dict) -> Dict:
     # Extract utterances
     utterances = json_data.get('utterances', [])
     if not utterances:
-        raise ValueError("No utterances found in JSON data")
+        raise ValueError("No se encontraron intervenciones en los datos JSON")
     
     # Format conversation from utterances (handle dict format)
     conversation_lines = []
     for utterance in utterances:
-        speaker = utterance.get('speaker', 'Unknown')
+        speaker = utterance.get('speaker', 'Desconocido')
         text = utterance.get('text', '')
-        conversation_lines.append(f"Speaker {speaker}: {text}")
+        conversation_lines.append(f"Interlocutor {speaker}: {text}")
     formatted_conversation = "\n\n".join(conversation_lines)
     
     # Get full transcript or generate from utterances
@@ -295,19 +295,19 @@ def generate_report(formatted_conversation: str) -> str:
         Exception: If report generation fails
     """
     if not OPENAI_AVAILABLE:
-        raise ImportError("OpenAI SDK not installed. Install with: pip install openai")
+        raise ImportError("SDK de OpenAI no instalado. Instálalo con: pip install openai")
     
     # Get API key
     api_key = _get_secret_value("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("OPENAI_API_KEY not found in environment variables")
+        raise ValueError("OPENAI_API_KEY no está configurado en las variables de entorno")
     
     # Get stored prompt configuration
     prompt_id = _get_secret_value("OPENAI_PROMPT_ID")
     prompt_version = _get_secret_value("OPENAI_PROMPT_VERSION", "1")
     
     if not prompt_id:
-        raise ValueError("OPENAI_PROMPT_ID not found in environment variables or Streamlit secrets. Please add it to your configuration.")
+        raise ValueError("OPENAI_PROMPT_ID no está configurado en las variables de entorno ni en los secretos de Streamlit. Añádelo a tu configuración.")
     
     # Initialize OpenAI client
     client = OpenAI(api_key=api_key)
@@ -341,7 +341,7 @@ Por favor, genera una ficha post-visita completa siguiendo la plantilla especifi
         return response.output_text
         
     except Exception as e:
-        raise Exception(f"Failed to generate report: {str(e)}")
+        raise Exception(f"No se pudo generar el informe: {str(e)}")
 
 
 def validate_api_keys() -> Dict[str, bool]:
